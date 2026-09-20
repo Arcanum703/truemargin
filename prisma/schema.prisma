@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Workspace {
+  id         String      @id @default(cuid())
+  token      String      @unique
+  createdAt  DateTime    @default(now())
+  settings   Settings?
+  orders     Order[]
+  orderItems OrderItem[]
+  products   Product[]
+}
+
+model Settings {
+  id                      String    @id @default(cuid())
+  workspaceId             String    @unique
+  workspace               Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  hourlyRate              Float     @default(0)
+  listingFee              Float     @default(0.2)
+  transactionRate         Float     @default(6.5)
+  paymentRate             Float     @default(3)
+  paymentFixed            Float     @default(0.25)
+  offsiteAdsEnabled       Boolean   @default(true)
+  offsiteAdsRate          Float     @default(15)
+  estimatedOffsitePercent Float     @default(0)
+  defaultShippingCost     Float     @default(4)
+  marginThreshold         Float     @default(30)
+  targetMargin            Float     @default(40)
+  updatedAt               DateTime  @updatedAt
+}
+
+model Order {
+  id                   String      @id @default(cuid())
+  workspaceId          String
+  workspace            Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  externalId           String
+  saleDate             DateTime
+  buyer                String
+  currency             String      @default("USD")
+  orderValue           Float       @default(0)
+  shipping             Float       @default(0)
+  salesTax             Float       @default(0)
+  orderTotal           Float       @default(0)
+  status               String      @default("Completed")
+  cardProcessingFees   Float?
+  orderNet             Float?
+  offsiteAdsAttributed Boolean     @default(false)
+  items                OrderItem[]
+  createdAt            DateTime    @default(now())
+  @@unique([workspaceId, externalId])
+}
+
+model OrderItem {
+  id              String     @id @default(cuid())
+  workspaceId     String
+  workspace       Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  orderId         String?
+  order           Order?     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  externalOrderId String
+  itemName        String
+  buyer           String     @default("")
+  quantity        Float      @default(1)
+  price           Float      @default(0)
+  itemTotal       Float      @default(0)
+  currency        String     @default("USD")
+  transactionId   String?
+  sku             String     @default("")
+  variations      String     @default("")
+  createdAt       DateTime   @default(now())
+}
+
+model Product {
+  id            String      @id @default(cuid())
+  workspaceId   String
+  workspace     Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name          String
+  sku           String      @default("")
+  materialCost  Float       @default(0)
+  laborMinutes  Float       @default(0)
+  packagingCost Float       @default(0)
+  stockOnHand   Float       @default(0)
+  reorderPoint  Float       @default(5)
+  createdAt     DateTime    @default(now())
+  @@unique([workspaceId, name])
+}
