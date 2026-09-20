@@ -3,10 +3,20 @@ import { calculateOrderFees } from "@/lib/fee-engine";
 import { productMetrics } from "@/lib/metrics";
 import { getWorkspace } from "@/lib/workspace";
 
-export async function getDashboard() {
+export async function getDashboard(options: { period?: string; from?: string; to?: string } = {}) {
   const workspace = await getWorkspace();
+  const saleDate: { gte?: Date; lte?: Date } = {};
+  if (options.period === "month") {
+    const now = new Date();
+    saleDate.gte = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  } else if (options.period === "30") {
+    saleDate.gte = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  } else if (options.period === "custom") {
+    if (options.from) saleDate.gte = new Date(`${options.from}T00:00:00.000Z`);
+    if (options.to) saleDate.lte = new Date(`${options.to}T23:59:59.999Z`);
+  }
   const [orders, products] = await Promise.all([
-    db.order.findMany({ where: { workspaceId: workspace.id }, include: { items: true }, orderBy: { saleDate: "desc" } }),
+    db.order.findMany({ where: { workspaceId: workspace.id, ...(Object.keys(saleDate).length ? { saleDate } : {}) }, include: { items: true }, orderBy: { saleDate: "desc" } }),
     db.product.findMany({ where: { workspaceId: workspace.id }, orderBy: { name: "asc" } }),
   ]);
   const settings = workspace.settings ?? await db.settings.create({ data: { workspaceId: workspace.id } });

@@ -46,8 +46,8 @@ export async function saveProductAction(formData: FormData) {
 export async function toggleOffsiteAction(formData: FormData) {
   const id = String(formData.get("orderId"));
   const workspace = await getWorkspace();
-  const order = await db.order.findFirstOrThrow({ where: { id, workspaceId: workspace.id } });
-  await db.order.update({ where: { id }, data: { offsiteAdsAttributed: !order.offsiteAdsAttributed } });
+  await db.order.findFirstOrThrow({ where: { id, workspaceId: workspace.id } });
+  await db.order.update({ where: { id }, data: { offsiteAdsAttributed: formData.get("offsiteAds") === "on" } });
   revalidatePath("/");
 }
 
