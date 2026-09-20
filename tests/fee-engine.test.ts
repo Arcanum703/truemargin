@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateOrderFees } from "../lib/fee-engine";
+import { calculateOrderFees, calculateWhatIfPrice } from "../lib/fee-engine";
 
 const settings = { listingFee: 0.2, transactionRate: 6.5, paymentRate: 3, paymentFixed: 0.25, offsiteAdsEnabled: true, offsiteAdsRate: 15, defaultShippingCost: 4 };
 
@@ -29,5 +29,10 @@ describe("TrueMargin fee engine", () => {
   it("falls back to price when item total is missing", () => {
     const result = calculateOrderFees({ orderValue: 20, shipping: 0, items: [{ quantity: 2, price: 10, itemTotal: 0 }] }, settings);
     expect(result.revenue).toBe(20);
+  });
+  it("recomputes what-if price profit and hourly return", () => {
+    const result = calculateWhatIfPrice(40, { materialCost: 5, laborMinutes: 30, packagingCost: 1 }, { ...settings, hourlyRate: 24 });
+    expect(result.profit).toBeCloseTo(13.75);
+    expect(result.profitPerHour).toBeCloseTo(27.5);
   });
 });
