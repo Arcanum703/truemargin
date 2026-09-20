@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body { color: #171329; background: #faf8ff; font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+* { box-sizing: border-box; }
+input, textarea, select { width: 100%; border: 1px solid #ddd6fe; border-radius: .7rem; padding: .65rem .75rem; background: #fff; font-size: .9rem; }
+input:focus, textarea:focus, select:focus { outline: 2px solid #c4b5fd; border-color: #8b5cf6; }
+label { display: block; margin-bottom: .35rem; color: #57516f; font-size: .78rem; font-weight: 600; }
+@layer utilities { .text-balance { text-wrap: balance; } }
