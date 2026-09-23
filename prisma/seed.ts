@@ -1,18 +1,18 @@
 import fs from "node:fs";
 import path from "node:path";
-import crypto from "node:crypto";
+import { hash } from "@node-rs/argon2";
 import { PrismaClient } from "@prisma/client";
 import { importEtsyCsv } from "../lib/csv";
 
 const db = new PrismaClient();
+const SEED_EMAIL = process.env.SEED_EMAIL ?? "demo@truemargin.local";
+const SEED_PASSWORD = process.env.SEED_PASSWORD ?? "demo-passphrase-123";
 
 async function main() {
-  await db.orderItem.deleteMany();
-  await db.order.deleteMany();
-  await db.product.deleteMany();
-  await db.settings.deleteMany();
-  await db.workspace.deleteMany();
-  const workspace = await db.workspace.create({ data: { token: crypto.randomBytes(18).toString("hex"), settings: { create: {} } } });
+  if (process.env.NODE_ENV === "production" && process.env.ALLOW_PROD_SEED !== "1") throw new Error("Refusing to seed a production database. Set ALLOW_PROD_SEED=1 to override.");
+  await db.user.deleteMany({ where: { email: SEED_EMAIL } });
+  const workspace = await db.workspace.create({ data: { name: "Demo Etsy shop", trialEndsAt: new Date(Date.now() + 30 * 86_400_000), settings: { create: {} } } });
+  await db.user.create({ data: { email: SEED_EMAIL, passwordHash: await hash(SEED_PASSWORD, { memoryCost: 19456, timeCost: 2, parallelism: 1 }), emailVerifiedAt: new Date(), memberships: { create: { workspaceId: workspace.id, role: "OWNER" } } } });
   const orders = fs.readFileSync(path.join(process.cwd(), "public/demo/EtsySoldOrders_demo.csv"), "utf8");
   const items = fs.readFileSync(path.join(process.cwd(), "public/demo/EtsySoldOrderItems_demo.csv"), "utf8");
   await importEtsyCsv(workspace.id, orders, items);
@@ -20,7 +20,7 @@ async function main() {
   for (const [index, product] of Array.from(products.entries())) {
     await db.product.update({ where: { id: product.id }, data: { materialCost: [4, 12, 3, 7, 1, 2, 15, 4, 8, 2, 5, 9, 0, 14, 20][index] ?? 5, laborMinutes: 8 + (index % 5) * 7, packagingCost: 1.25, stockOnHand: index % 4 === 0 ? 3 : 18 + index, reorderPoint: 8 } });
   }
-  console.log(`Seeded TrueMargin demo workspace ${workspace.token} with 200 orders and ${products.length} products.`);
+  console.log(`Seeded demo user ${SEED_EMAIL} with 200 orders and ${products.length} products. Log in with the SEED_PASSWORD you set (default shown in .env.example).`);
 }
 
 main().catch((error) => { console.error(error); process.exit(1); }).finally(() => db.$disconnect());

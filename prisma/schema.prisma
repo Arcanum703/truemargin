@@ -3,18 +3,99 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id                 String     @id @default(cuid())
+  email              String     @unique
+  passwordHash       String
+  emailVerifiedAt    DateTime?
+  failedLoginCount   Int        @default(0)
+  lockedUntil        DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  sessions           Session[]
+  tokens             AuthToken[]
+  memberships        Membership[]
+  auditLogs          AuditLog[]
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  lastSeenAt DateTime @default(now())
+  ipHash     String   @default("")
+  userAgent  String   @default("")
+
+  @@index([userId])
+}
+
+enum AuthTokenType {
+  EMAIL_VERIFY
+  PASSWORD_RESET
+}
+
+model AuthToken {
+  id        String        @id @default(cuid())
+  tokenHash String        @unique
+  type      AuthTokenType
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  @@index([userId, type])
+}
+
+enum Role {
+  OWNER
+  MEMBER
+}
+
+model Membership {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  role        Role      @default(OWNER)
+  createdAt   DateTime  @default(now())
+
+  @@unique([userId, workspaceId])
+  @@index([workspaceId])
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
 model Workspace {
-  id         String      @id @default(cuid())
-  token      String      @unique
-  createdAt  DateTime    @default(now())
-  settings   Settings?
-  orders     Order[]
-  orderItems OrderItem[]
-  products   Product[]
+  id                   String             @id @default(cuid())
+  name                 String             @default("My Etsy shop")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  trialEndsAt          DateTime
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  subscriptionStatus   SubscriptionStatus @default(TRIALING)
+  currentPeriodEnd     DateTime?
+  settings             Settings?
+  orders               Order[]
+  orderItems           OrderItem[]
+  products             Product[]
+  memberships          Membership[]
+  auditLogs            AuditLog[]
 }
 
 model Settings {
@@ -41,7 +122,7 @@ model Order {
   workspace            Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   externalId           String
   saleDate             DateTime
-  buyer                String
+  buyer                String      @default("")
   currency             String      @default("USD")
   orderValue           Float       @default(0)
   shipping             Float       @default(0)
@@ -53,39 +134,72 @@ model Order {
   offsiteAdsAttributed Boolean     @default(false)
   items                OrderItem[]
   createdAt            DateTime    @default(now())
+
   @@unique([workspaceId, externalId])
+  @@index([workspaceId, saleDate])
 }
 
 model OrderItem {
-  id              String     @id @default(cuid())
+  id              String    @id @default(cuid())
   workspaceId     String
-  workspace       Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   orderId         String?
-  order           Order?     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order           Order?    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   externalOrderId String
   itemName        String
-  buyer           String     @default("")
-  quantity        Float      @default(1)
-  price           Float      @default(0)
-  itemTotal       Float      @default(0)
-  currency        String     @default("USD")
+  buyer           String    @default("")
+  quantity        Float     @default(1)
+  price           Float     @default(0)
+  itemTotal       Float     @default(0)
+  currency        String    @default("USD")
   transactionId   String?
-  sku             String     @default("")
-  variations      String     @default("")
-  createdAt       DateTime   @default(now())
+  sku             String    @default("")
+  variations      String    @default("")
+  createdAt       DateTime  @default(now())
+
+  @@index([workspaceId])
+  @@index([orderId])
 }
 
 model Product {
-  id            String      @id @default(cuid())
+  id            String    @id @default(cuid())
   workspaceId   String
-  workspace     Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   name          String
-  sku           String      @default("")
-  materialCost  Float       @default(0)
-  laborMinutes  Float       @default(0)
-  packagingCost Float       @default(0)
-  stockOnHand   Float       @default(0)
-  reorderPoint  Float       @default(5)
-  createdAt     DateTime    @default(now())
+  sku           String    @default("")
+  materialCost  Float     @default(0)
+  laborMinutes  Float     @default(0)
+  packagingCost Float     @default(0)
+  stockOnHand   Float     @default(0)
+  reorderPoint  Float     @default(5)
+  createdAt     DateTime  @default(now())
+
   @@unique([workspaceId, name])
+}
+
+model AuditLog {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  action      String
+  userId      String?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  ipHash      String     @default("")
+  metadata    Json?
+
+  @@index([workspaceId, createdAt])
+  @@index([userId, createdAt])
+}
+
+model RateLimit {
+  key       String   @id
+  count     Int      @default(0)
+  resetAt   DateTime
+}
+
+model StripeEvent {
+  id         String   @id
+  type       String
+  receivedAt DateTime @default(now())
 }

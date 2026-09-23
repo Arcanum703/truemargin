@@ -1,0 +1,8 @@
+import { Card, Shell } from "@/components/shell";
+import { shellUser } from "@/lib/auth";
+import { getDashboard } from "@/lib/queries";
+
+export default async function ExportPage() {
+  const { orders, products, context } = await getDashboard();
+  return <Shell title="Tax-time exports" user={shellUser(context)}><div className="grid gap-5 md:grid-cols-3"><Card><h2 className="font-semibold">Monthly P&amp;L by product</h2><p className="mt-2 text-sm text-slate-500">{products.length} products with revenue, fees, COGS, profit, and margin.</p><a href="/api/export?type=products" className="mt-4 inline-block rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white">Download product P&amp;L</a></Card><Card><h2 className="font-semibold">Full orders with fees</h2><p className="mt-2 text-sm text-slate-500">{orders.length} imported orders are ready for reconciliation.</p><a href="/api/export?type=orders" className="mt-4 inline-block rounded-lg border border-violet-200 px-4 py-2 text-sm font-semibold text-violet-700">Download orders CSV</a></Card><Card><h2 className="font-semibold">Year summary (Schedule C style)</h2><p className="mt-2 text-sm text-slate-500">Monthly gross receipts, refunds, Etsy fees, shipping, materials, labor, and net.</p><a href="/api/export?type=summary" className="mt-4 inline-block rounded-lg border border-violet-200 px-4 py-2 text-sm font-semibold text-violet-700">Download year summary</a></Card></div><p className="mt-5 text-xs text-slate-500">Exports are generated on demand from your workspace only. Cells that begin with formula characters are escaped so spreadsheets never execute them.</p></Shell>;
+}
