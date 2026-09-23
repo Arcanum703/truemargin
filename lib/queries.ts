@@ -1,11 +1,13 @@
+import { notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { calculateOrderFees } from "@/lib/fee-engine";
 import { productMetrics } from "@/lib/metrics";
 import { isRefundedStatus } from "@/lib/order-status";
-import { getWorkspace } from "@/lib/workspace";
+import { requireWorkspace } from "@/lib/auth";
 
 export async function getDashboard(options: { period?: string; from?: string; to?: string } = {}) {
-  const workspace = await getWorkspace();
+  const context = await requireWorkspace();
+  const { workspace } = context;
   const saleDate: { gte?: Date; lte?: Date } = {};
   if (options.period === "month") {
     const now = new Date();
@@ -20,7 +22,7 @@ export async function getDashboard(options: { period?: string; from?: string; to
     db.order.findMany({ where: { workspaceId: workspace.id, ...(Object.keys(saleDate).length ? { saleDate } : {}) }, include: { items: true }, orderBy: { saleDate: "desc" } }),
     db.product.findMany({ where: { workspaceId: workspace.id }, orderBy: { name: "asc" } }),
   ]);
-  const settings = workspace.settings ?? await db.settings.create({ data: { workspaceId: workspace.id } });
+  const settings = workspace.settings;
   const feeSettings = { listingFee: settings.listingFee, transactionRate: settings.transactionRate, paymentRate: settings.paymentRate, paymentFixed: settings.paymentFixed, offsiteAdsEnabled: settings.offsiteAdsEnabled, offsiteAdsRate: settings.offsiteAdsRate, defaultShippingCost: settings.defaultShippingCost };
   const activeOrders = orders.filter((order) => !isRefundedStatus(order.status));
   const flagged = activeOrders.some((order) => order.offsiteAdsAttributed);
@@ -33,16 +35,18 @@ export async function getDashboard(options: { period?: string; from?: string; to
   const packaging = productsWithMetrics.reduce((sum, product) => sum + product.packaging, 0);
   const netProfit = totals.revenue - totals.fees - totals.shipping - materials - labor - packaging;
   const refunds = orders.filter((order) => isRefundedStatus(order.status));
-  return { workspace, settings, orders, refunds, products: productsWithMetrics, totals: { ...totals, materials, labor, packaging, netProfit, margin: totals.revenue ? netProfit / totals.revenue * 100 : 0 } };
+  return { context, workspace, settings, orders, refunds, products: productsWithMetrics, totals: { ...totals, materials, labor, packaging, netProfit, margin: totals.revenue ? netProfit / totals.revenue * 100 : 0 } };
 }
 
 export async function getProduct(id: string) {
-  const workspace = await getWorkspace();
-  const product = await db.product.findFirstOrThrow({ where: { id, workspaceId: workspace.id } });
+  const context = await requireWorkspace();
+  const { workspace } = context;
+  const product = await db.product.findFirst({ where: { id, workspaceId: workspace.id } });
+  if (!product) notFound();
   const orders = await db.order.findMany({ where: { workspaceId: workspace.id }, include: { items: true }, orderBy: { saleDate: "desc" } });
-  const settings = workspace.settings ?? await db.settings.create({ data: { workspaceId: workspace.id } });
+  const settings = workspace.settings;
   const metric = productMetrics([product], orders, { listingFee: settings.listingFee, transactionRate: settings.transactionRate, paymentRate: settings.paymentRate, paymentFixed: settings.paymentFixed, offsiteAdsEnabled: settings.offsiteAdsEnabled, offsiteAdsRate: settings.offsiteAdsRate, defaultShippingCost: settings.defaultShippingCost, hourlyRate: settings.hourlyRate, estimatedOffsitePercent: settings.estimatedOffsitePercent })[0];
   const costPerUnit = product.materialCost + product.packagingCost + product.laborMinutes / 60 * settings.hourlyRate;
   const suggestedPrice = costPerUnit / Math.max(0.01, (100 - settings.targetMargin - settings.transactionRate - settings.paymentRate) / 100);
-  return { workspace, settings, product, metric, costPerUnit, suggestedPrice };
+  return { context, workspace, settings, product, metric, costPerUnit, suggestedPrice };
 }
