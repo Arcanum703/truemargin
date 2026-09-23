@@ -46,7 +46,7 @@ export async function getProduct(id: string) {
   const orders = await db.order.findMany({ where: { workspaceId: workspace.id }, include: { items: true }, orderBy: { saleDate: "desc" } });
   const settings = workspace.settings;
   const metric = productMetrics([product], orders, { listingFee: settings.listingFee, transactionRate: settings.transactionRate, paymentRate: settings.paymentRate, paymentFixed: settings.paymentFixed, offsiteAdsEnabled: settings.offsiteAdsEnabled, offsiteAdsRate: settings.offsiteAdsRate, defaultShippingCost: settings.defaultShippingCost, hourlyRate: settings.hourlyRate, estimatedOffsitePercent: settings.estimatedOffsitePercent })[0];
-  const costPerUnit = product.materialCost + product.packagingCost + product.laborMinutes / 60 * settings.hourlyRate;
-  const suggestedPrice = costPerUnit / Math.max(0.01, (100 - settings.targetMargin - settings.transactionRate - settings.paymentRate) / 100);
+  const costPerUnit = product.materialCost + product.packagingCost + product.laborMinutes / 60 * settings.hourlyRate + settings.defaultShippingCost;
+  const suggestedPrice = (costPerUnit + settings.listingFee + settings.paymentFixed) / Math.max(0.01, (100 - settings.targetMargin - settings.transactionRate - settings.paymentRate) / 100);
   return { context, workspace, settings, product, metric, costPerUnit, suggestedPrice };
 }
