@@ -27,7 +27,7 @@ Without `RESEND_API_KEY`, verification and reset emails are printed to the serve
 ## Environment
 
 See `.env.example` for every variable. Required in production: `DATABASE_URL`, `APP_URL` (https), `SESSION_SECRET` (>= 32 chars).
-Optional: `RESEND_API_KEY` + `EMAIL_FROM` (email), `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` + `STRIPE_PRICE_ID` (paid plans), `TRIAL_DAYS`, `DEMO_MODE`.
+Optional: `RESEND_API_KEY` + `EMAIL_FROM` (email), `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` + `STRIPE_PRICE_ID` (paid plans; optional `STRIPE_PRICE_ID_YEARLY` for an annual option), `TRIAL_DAYS`, `DEMO_MODE`.
 
 ## Deploy (Vercel)
 

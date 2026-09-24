@@ -310,13 +310,14 @@ export async function clearWorkspaceDataAction(): Promise<ActionState> {
   });
 }
 
-export async function startCheckoutAction(): Promise<ActionState> {
+export async function startCheckoutAction(_: ActionState, formData: FormData): Promise<ActionState> {
   return guarded(async () => {
     const { user, workspace, membership } = await requireWorkspace();
     if (membership.role !== "OWNER") throw new UserFacingError("Only the workspace owner can manage billing.");
+    const interval = formData.get("interval") === "yearly" ? "yearly" : "monthly";
     await consumeRateLimit("billing", workspace.id);
-    const url = await createCheckoutSession(workspace, user.email);
-    await audit("billing.checkout_started", { userId: user.id, workspaceId: workspace.id });
+    const url = await createCheckoutSession(workspace, user.email, interval);
+    await audit("billing.checkout_started", { userId: user.id, workspaceId: workspace.id, metadata: { interval } });
     redirect(url);
   });
 }
