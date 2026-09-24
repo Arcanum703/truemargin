@@ -10,6 +10,7 @@ const schema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_ID: z.string().optional(),
+  STRIPE_PRICE_ID_YEARLY: z.string().optional(),
   TRIAL_DAYS: z.coerce.number().int().min(0).max(90).default(14),
   DEMO_MODE: z.enum(["0", "1"]).default("0"),
 });
@@ -33,3 +34,4 @@ export const env = load();
 export const isProduction = env.NODE_ENV === "production";
 export const emailEnabled = Boolean(env.RESEND_API_KEY);
 export const billingEnabled = Boolean(env.STRIPE_SECRET_KEY && env.STRIPE_PRICE_ID && env.STRIPE_WEBHOOK_SECRET);
+export const yearlyBillingEnabled = billingEnabled && Boolean(env.STRIPE_PRICE_ID_YEARLY);

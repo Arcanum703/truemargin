@@ -2,7 +2,7 @@ import { openBillingPortalAction, startCheckoutAction } from "@/app/actions";
 import { ActionForm } from "@/components/action-form";
 import { Card, Notice, Shell } from "@/components/shell";
 import { isSubscribed, requireWorkspace, shellUser } from "@/lib/auth";
-import { billingEnabled } from "@/lib/env";
+import { billingEnabled, yearlyBillingEnabled } from "@/lib/env";
 
 const LABELS = { TRIALING: "Free trial", ACTIVE: "Active subscription", PAST_DUE: "Payment past due", CANCELED: "Canceled", INCOMPLETE: "Payment incomplete" } as const;
 
@@ -24,11 +24,14 @@ export default async function BillingPage({ searchParams }: { searchParams: Prom
         <p className={`mt-3 inline-block rounded-full px-3 py-1 text-xs font-semibold ${active ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}>{active ? "Full access" : "Read-only"}</p>
       </Card>
       <Card>
-        <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">TrueMargin Pro</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">TrueMargin</p>
         <ul className="mt-3 space-y-2 text-sm text-slate-600"><li>✓ Unlimited Etsy imports</li><li>✓ Product profitability, alerts, and pricing</li><li>✓ Tax-time CSV exports</li><li>✓ Email support</li></ul>
         {!billingEnabled && <p className="mt-4 text-sm text-slate-500">Paid plans are not enabled on this deployment yet.</p>}
         {billingEnabled && !isOwner && <p className="mt-4 text-sm text-slate-500">Only the workspace owner can manage billing.</p>}
-        {billingEnabled && isOwner && workspace.subscriptionStatus !== "ACTIVE" && <div className="mt-4"><ActionForm action={startCheckoutAction} submitLabel="Subscribe with Stripe" /></div>}
+        {billingEnabled && isOwner && workspace.subscriptionStatus !== "ACTIVE" && <div className="mt-4 flex flex-wrap items-start gap-3">
+          <ActionForm action={startCheckoutAction} submitLabel="Subscribe monthly"><input type="hidden" name="interval" value="monthly" /></ActionForm>
+          {yearlyBillingEnabled && <ActionForm action={startCheckoutAction} submitLabel="Subscribe yearly (save 2 months)"><input type="hidden" name="interval" value="yearly" /></ActionForm>}
+        </div>}
         {billingEnabled && isOwner && workspace.stripeCustomerId && <div className="mt-3"><ActionForm action={openBillingPortalAction} submitLabel="Manage payment method, invoices, or cancel" submitClassName="text-sm font-semibold text-violet-700 hover:underline" /></div>}
         <p className="mt-4 text-xs text-slate-500">Payments are processed by Stripe. TrueMargin never sees or stores your card number.</p>
       </Card>

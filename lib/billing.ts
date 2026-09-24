@@ -18,13 +18,22 @@ async function ensureCustomer(workspace: Workspace, email: string) {
   return customer.id;
 }
 
-export async function createCheckoutSession(workspace: Workspace, email: string) {
+export type BillingInterval = "monthly" | "yearly";
+
+export function priceFor(interval: BillingInterval) {
+  const price = interval === "yearly" ? env.STRIPE_PRICE_ID_YEARLY : env.STRIPE_PRICE_ID;
+  if (!price) throw new UserFacingError("That plan is not available.");
+  return price;
+}
+
+export async function createCheckoutSession(workspace: Workspace, email: string, interval: BillingInterval) {
   if (workspace.subscriptionStatus === "ACTIVE" && workspace.stripeSubscriptionId) throw new UserFacingError("This workspace already has an active subscription.");
+  const price = priceFor(interval);
   const customer = await ensureCustomer(workspace, email);
   const session = await stripe().checkout.sessions.create({
     mode: "subscription",
     customer,
-    line_items: [{ price: env.STRIPE_PRICE_ID, quantity: 1 }],
+    line_items: [{ price, quantity: 1 }],
     success_url: `${env.APP_URL}/app/billing?success=1`,
     cancel_url: `${env.APP_URL}/app/billing?canceled=1`,
     allow_promotion_codes: true,
