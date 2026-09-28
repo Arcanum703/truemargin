@@ -14,6 +14,6 @@ export default async function LoginPage() {
       <div><label htmlFor="email">Email</label><input id="email" name="email" type="email" autoComplete="email" required maxLength={254} /></div>
       <div><label htmlFor="password">Password</label><input id="password" name="password" type="password" autoComplete="current-password" required maxLength={128} /></div>
     </ActionForm>
-    <div className="mt-5 flex justify-between text-sm text-slate-500"><Link href="/forgot" className="hover:text-violet-700">Forgot password?</Link><Link href="/signup" className="font-semibold text-violet-700">Create an account</Link></div>
+    <div className="mt-5 flex justify-between text-sm text-ink-500"><Link href="/forgot" className="hover:text-brand-700">Forgot password?</Link><Link href="/signup" className="font-semibold text-brand-700">Create an account</Link></div>
   </Card></div></Shell>;
 }

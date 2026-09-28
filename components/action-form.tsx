@@ -6,7 +6,7 @@ import type { ActionState } from "@/lib/action-state";
 
 function Submit({ label, className }: { label: string; className?: string }) {
   const { pending } = useFormStatus();
-  return <button type="submit" disabled={pending} className={className ?? "rounded-lg bg-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50"}>{pending ? "Working…" : label}</button>;
+  return <button type="submit" disabled={pending} className={className ?? "rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"}>{pending ? "Working…" : label}</button>;
 }
 
 export function ActionForm({ action, children, submitLabel, className = "", submitClassName, inline = false }: { action: (state: ActionState, formData: FormData) => Promise<ActionState>; children?: React.ReactNode; submitLabel: string; className?: string; submitClassName?: string; inline?: boolean }) {
