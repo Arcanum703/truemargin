@@ -76,6 +76,16 @@ export async function importEtsyCsv(workspaceId: string, ordersCsv: string, item
   return { orders: orderRecords.length, items: itemRows.length };
 }
 
+const DEMO_MATERIAL_COSTS = [4, 12, 3, 7, 1, 2, 15, 4, 8, 2, 5, 9, 0, 14, 20];
+
+export async function applyDemoCosts(workspaceId: string) {
+  const products = await db.product.findMany({ where: { workspaceId }, orderBy: { name: "asc" }, select: { id: true } });
+  await db.$transaction([
+    db.settings.updateMany({ where: { workspaceId, hourlyRate: 0 }, data: { hourlyRate: 20 } }),
+    ...products.map((product, index) => db.product.update({ where: { id: product.id }, data: { materialCost: DEMO_MATERIAL_COSTS[index] ?? 5, laborMinutes: 8 + (index % 5) * 7, packagingCost: 1.25, stockOnHand: index % 4 === 0 ? 3 : 18 + index, reorderPoint: 8 } })),
+  ]);
+}
+
 function chunk<T>(rows: T[], size = 1000) {
   const batches: T[][] = [];
   for (let index = 0; index < rows.length; index += size) batches.push(rows.slice(index, index + size));
