@@ -3,7 +3,7 @@ import { logoutAction } from "@/app/actions";
 
 export type ShellUser = { email: string; workspaceName: string; trialDaysLeft: number | null; subscribed: boolean };
 
-const NAV = [["/app", "Dashboard"], ["/app/import", "Import"], ["/app/products", "Products"], ["/app/alerts", "Alerts"], ["/app/export", "Export"], ["/app/settings", "Settings"], ["/app/billing", "Billing"]] as const;
+const NAV = [["/app", "Dashboard"], ["/app/import", "Import"], ["/app/products", "Products"], ["/app/export", "Export"], ["/app/settings", "Settings"], ["/app/billing", "Billing"]] as const;
 
 export function Shell({ children, title, eyebrow = "Etsy profit clarity", user }: { children: React.ReactNode; title?: string; eyebrow?: string; user?: ShellUser }) {
   return <div className="min-h-screen bg-[#faf8ff] text-slate-900">

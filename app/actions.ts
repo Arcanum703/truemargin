@@ -9,7 +9,7 @@ import type { ActionState } from "@/lib/action-state";
 import { audit } from "@/lib/audit";
 import { assertActiveWorkspace, createSession, destroySession, getCurrentUser, hashPassword, requireUser, requireWorkspace, revokeAllSessions, verifyPassword } from "@/lib/auth";
 import { cancelSubscription, createCheckoutSession, createPortalSession } from "@/lib/billing";
-import { importEtsyCsv } from "@/lib/csv";
+import { applyDemoCosts, importEtsyCsv } from "@/lib/csv";
 import { db } from "@/lib/db";
 import { sendPasswordResetEmail, sendSecurityNotice, sendVerificationEmail } from "@/lib/email";
 import { emailEnabled, env } from "@/lib/env";
@@ -35,7 +35,7 @@ async function guarded(run: () => Promise<ActionState | void>): Promise<ActionSt
 }
 
 function revalidateWorkspace() {
-  for (const route of ["/app", "/app/import", "/app/products", "/app/alerts", "/app/export", "/app/settings", "/app/billing", "/app/account"]) revalidatePath(route);
+  for (const route of ["/app", "/app/import", "/app/products", "/app/export", "/app/settings", "/app/billing", "/app/account"]) revalidatePath(route);
   revalidatePath("/app/products/[id]", "page");
 }
 
@@ -216,8 +216,9 @@ export async function loadDemoShopAction(): Promise<ActionState> {
     const ordersCsv = fs.readFileSync(path.join(process.cwd(), "public/demo/EtsySoldOrders_demo.csv"), "utf8");
     const itemsCsv = fs.readFileSync(path.join(process.cwd(), "public/demo/EtsySoldOrderItems_demo.csv"), "utf8");
     const result = await importFiles(workspace.id, ordersCsv, itemsCsv);
+    await applyDemoCosts(workspace.id);
     await audit("import.demo", { userId: user.id, workspaceId: workspace.id, metadata: result });
-    redirect("/app");
+    redirect("/app?demo=1");
   });
 }
 
@@ -242,7 +243,7 @@ export async function importCsvAction(_: ActionState, formData: FormData): Promi
     if (!ordersCsv.trim() || !itemsCsv.trim()) throw new UserFacingError("Both Etsy CSVs are required.");
     const result = await importFiles(workspace.id, ordersCsv, itemsCsv);
     await audit("import.csv", { userId: user.id, workspaceId: workspace.id, metadata: result });
-    return { success: `Imported ${result.orders.toLocaleString()} orders and ${result.items.toLocaleString()} line items.` };
+    redirect(`/app/products?imported=${result.orders}&items=${result.items}`);
   });
 }
 
@@ -274,6 +275,7 @@ export async function toggleOffsiteAction(formData: FormData) {
   if (!parsed.success) throw new UserFacingError("Invalid order.");
   await db.order.updateMany({ where: { id: parsed.data.orderId, workspaceId: workspace.id }, data: { offsiteAdsAttributed: parsed.data.offsiteAds } });
   revalidatePath("/app");
+  revalidatePath("/app/settings");
 }
 
 export async function saveSettingsAction(_: ActionState, formData: FormData): Promise<ActionState> {
