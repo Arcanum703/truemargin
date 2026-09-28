@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import Papa from "papaparse";
 import { db } from "@/lib/db";
 import { UserFacingError } from "@/lib/security";
@@ -59,26 +60,26 @@ export async function importEtsyCsv(workspaceId: string, ordersCsv: string, item
     if (!orders.has(externalId)) orders.set(externalId, { row, items: [] });
     orders.get(externalId)?.items.push(row);
   }
-  const existingProducts = new Set((await db.product.findMany({ where: { workspaceId }, select: { name: true } })).map((product) => product.name));
-  let imported = 0;
-  for (const [externalId, group] of Array.from(orders.entries())) {
-    const data = orderData(group.row);
-    await db.$transaction(async (tx) => {
-      const order = await tx.order.upsert({ where: { workspaceId_externalId: { workspaceId, externalId } }, update: data, create: { workspaceId, externalId, ...data } });
-      await tx.orderItem.deleteMany({ where: { orderId: order.id, workspaceId } });
-      if (group.items.length) {
-        await tx.orderItem.createMany({ data: group.items.map((row) => ({ workspaceId, orderId: order.id, externalOrderId: externalId, itemName: value(row, "Item Name") || "Untitled item", buyer: value(row, "Buyer"), quantity: number(row, "Quantity") || 1, price: number(row, "Price"), itemTotal: number(row, "Item Total"), currency: value(row, "Currency") || "USD", transactionId: value(row, "Transaction ID") || null, sku: value(row, "SKU"), variations: value(row, "Variations") })) });
-      }
-      const newProducts = group.items.map((row) => ({ name: value(row, "Item Name") || "Untitled item", sku: value(row, "SKU") })).filter((product) => !existingProducts.has(product.name));
-      for (const product of newProducts) {
-        if (existingProducts.has(product.name)) continue;
-        existingProducts.add(product.name);
-        await tx.product.create({ data: { workspaceId, name: product.name, sku: product.sku } });
-      }
-    });
-    imported++;
-  }
-  return { orders: imported, items: itemRows.length };
+  const externalIds = Array.from(orders.keys());
+  const orderRecords = externalIds.map((externalId) => ({ id: randomUUID(), workspaceId, externalId, ...orderData(orders.get(externalId)!.row) }));
+  const itemRecords = orderRecords.flatMap((order) => orders.get(order.externalId)!.items.map((row) => ({ workspaceId, orderId: order.id, externalOrderId: order.externalId, itemName: value(row, "Item Name") || "Untitled item", buyer: value(row, "Buyer"), quantity: number(row, "Quantity") || 1, price: number(row, "Price"), itemTotal: number(row, "Item Total"), currency: value(row, "Currency") || "USD", transactionId: value(row, "Transaction ID") || null, sku: value(row, "SKU"), variations: value(row, "Variations") })));
+  const productRecords = Array.from(new Map(itemRecords.map((item) => [item.itemName, { workspaceId, name: item.itemName, sku: item.sku }])).values());
+
+  await db.$transaction(async (tx) => {
+    const existing = await tx.order.findMany({ where: { workspaceId, externalId: { in: externalIds } }, select: { externalId: true, offsiteAdsAttributed: true } });
+    const flagged = new Map(existing.map((order) => [order.externalId, order.offsiteAdsAttributed]));
+    await tx.order.deleteMany({ where: { workspaceId, externalId: { in: externalIds } } });
+    for (const batch of chunk(orderRecords.map((order) => ({ ...order, offsiteAdsAttributed: flagged.get(order.externalId) ?? false })))) await tx.order.createMany({ data: batch });
+    for (const batch of chunk(itemRecords)) await tx.orderItem.createMany({ data: batch });
+    for (const batch of chunk(productRecords)) await tx.product.createMany({ data: batch, skipDuplicates: true });
+  }, { timeout: 60_000 });
+  return { orders: orderRecords.length, items: itemRows.length };
+}
+
+function chunk<T>(rows: T[], size = 1000) {
+  const batches: T[][] = [];
+  for (let index = 0; index < rows.length; index += size) batches.push(rows.slice(index, index + size));
+  return batches;
 }
 
 const FORMULA_PREFIX = /^[=+\-@\t\r]/;
