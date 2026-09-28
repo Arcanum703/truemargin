@@ -19,7 +19,7 @@ function Column({ id, label, headers, defaultHeaders, placeholder, fileName }: {
       file.slice(0, 64 * 1024).text().then(preview);
     }} />{fileError && <p className="mt-1 text-xs text-red-700">{fileError}</p>}</div>
     <div><label htmlFor={id}>…or paste {label} CSV</label><textarea id={id} name={id} rows={4} placeholder={placeholder} value={text} onChange={(event) => { setText(event.target.value); preview(event.target.value); }} /></div>
-    <div className="rounded-xl bg-violet-50 p-4"><p className="text-sm font-semibold">{label} mapping preview</p><p className="mt-1 text-xs text-slate-500">{columns.length} columns detected · header matching is case-insensitive</p><div className="mt-3 flex flex-wrap gap-1.5">{columns.slice(0, 12).map((header) => <span key={header} className="rounded-full bg-white px-2 py-1 text-[11px] text-violet-800">{header}</span>)}{columns.length > 12 && <span className="px-2 py-1 text-[11px] text-slate-500">+{columns.length - 12} more</span>}</div></div>
+    <div className="rounded-xl bg-brand-50 p-4"><p className="text-sm font-semibold">{label} mapping preview</p><p className="mt-1 text-xs text-ink-500">{columns.length} columns detected · header matching is case-insensitive</p><div className="mt-3 flex flex-wrap gap-1.5">{columns.slice(0, 12).map((header) => <span key={header} className="rounded-full bg-white px-2 py-1 text-[11px] text-brand-800">{header}</span>)}{columns.length > 12 && <span className="px-2 py-1 text-[11px] text-ink-500">+{columns.length - 12} more</span>}</div></div>
   </div>;
 }
 
