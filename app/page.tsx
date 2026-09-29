@@ -29,13 +29,13 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         <h2 className="mt-2 text-3xl font-semibold tracking-tight">Etsy takes its cut in seven places. Your bank statement shows one number.</h2>
         <p className="mt-3 text-ink-600">Most shops only find out a bestseller was a money-loser at tax time. TrueMargin does the math per order and per product, using Etsy&apos;s current US fee schedule (editable if yours differs).</p>
       </div>
-      <Card className="bg-ink-950 text-white">
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-300">One $28 mug, honestly</p>
+      <section className="rounded-2xl bg-ink-950 p-5 text-white shadow-lg">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-300">One $28 mug, honestly (illustrative)</p>
         <ul className="mt-3 space-y-1.5 text-sm">
           {FEES.map((fee) => <li key={fee} className="flex justify-between border-b border-white/10 pb-1.5 text-ink-200"><span>{fee}</span><span className="text-ink-400">−</span></li>)}
           <li className="flex justify-between pt-2 font-display text-lg font-semibold"><span>You keep</span><span className="text-brand-300">$9.60 · 34%</span></li>
         </ul>
-      </Card>
+      </section>
     </section>
 
     <div className="mt-10 grid gap-5 md:grid-cols-3">

@@ -15,7 +15,7 @@ export default async function SignupPage() {
       <div><label htmlFor="shopName">Shop name</label><input id="shopName" name="shopName" type="text" autoComplete="organization" required maxLength={80} placeholder="My Etsy shop" /></div>
       <div><label htmlFor="email">Email</label><input id="email" name="email" type="email" autoComplete="email" required maxLength={254} /></div>
       <div><label htmlFor="password">Password</label><input id="password" name="password" type="password" autoComplete="new-password" required minLength={10} maxLength={128} /><p className="mt-1 text-xs text-ink-500">At least 10 characters. A passphrase of a few unrelated words works well.</p></div>
-      <label className="flex items-start gap-2 text-xs font-normal text-ink-600"><input className="mt-0.5 h-4 w-4" name="acceptTerms" type="checkbox" required /> I agree to the <Link href="/terms" className="font-semibold text-brand-700">Terms of Service</Link> and <Link href="/privacy" className="font-semibold text-brand-700">Privacy Policy</Link>.</label>
+      <label className="flex items-start gap-2 text-xs font-normal text-ink-600"><input className="mt-0.5 h-4 w-4" name="acceptTerms" type="checkbox" required /><span>I agree to the <Link href="/terms" className="font-semibold text-brand-700">Terms of Service</Link> and <Link href="/privacy" className="font-semibold text-brand-700">Privacy Policy</Link>.</span></label>
     </ActionForm>
     <p className="mt-5 text-sm text-ink-500">Already have an account? <Link href="/login" className="font-semibold text-brand-700">Log in</Link></p>
   </Card></div></Shell>;
