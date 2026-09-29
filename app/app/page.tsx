@@ -9,11 +9,11 @@ export default async function DashboardPage({ searchParams: searchParamsPromise 
   const data = await getDashboard(searchParams);
   const { totals, products, orders, refunds, settings, context } = data;
   const user = shellUser(context);
-  const sorted = [...products].sort((a, b) => a.margin - b.margin);
+  const sorted = products.filter((product) => product.units > 0).sort((a, b) => a.margin - b.margin);
   const onboarding = { hasOrders: orders.length > 0, productCount: products.length, missingCosts: products.filter(hasMissingCosts).length };
   const byHour = products.filter((product) => product.profitPerHour != null && product.profitPerHour > 0).sort((a, b) => (b.profitPerHour ?? 0) - (a.profitPerHour ?? 0)).slice(0, 5);
   const lowMargin = sorted.filter((product) => product.margin < settings.marginThreshold);
-  const reorder = products.filter((product) => product.stockOnHand <= product.reorderPoint);
+  const reorder = products.filter((product) => product.stockOnHand > 0 && product.stockOnHand <= product.reorderPoint);
   return <Shell title="What you actually keep" user={user}>
     {searchParams.verified === "1" && <Notice kind="success">Email confirmed. Your workspace is ready.</Notice>}
     {searchParams.demo === "1" && <Notice kind="success">Demo shop loaded: 202 orders and 16 products. Numbers below are sample data — clear them from your account page when you import your own.</Notice>}
