@@ -20,8 +20,8 @@ export default async function SettingsPage() {
       <p className="mb-5 mt-1 text-sm text-ink-500">Only the labor rate needs your input. The Etsy fees below are already set to Etsy&apos;s current US rates and only apply when an export doesn&apos;t include the actual fee.</p>
       <ActionForm action={saveSettingsAction} submitLabel="Save settings" className="grid gap-5 sm:grid-cols-2">
         <div className="sm:col-span-2"><label>Shop / workspace name</label><input name="workspaceName" defaultValue={context.workspace.name} required maxLength={80} /></div>
-        <Field label="Your hourly labor rate ($)" name="hourlyRate" value={settings.hourlyRate} step="0.01" hint="What an hour of your time is worth. Multiplied by each product's labor minutes." />
-        <Field label="Default shipping cost per order ($)" name="defaultShippingCost" value={settings.defaultShippingCost} step="0.01" hint="Your average postage + label cost. Used when you pay shipping." />
+        <Field label="Your hourly labor rate ($)" name="hourlyRate" value={settings.hourlyRate} step="any" hint="What an hour of your time is worth. Multiplied by each product's labor minutes." />
+        <Field label="Default shipping cost per order ($)" name="defaultShippingCost" value={settings.defaultShippingCost} step="any" hint="Your average postage + label cost. Used when you pay shipping." />
         <Field label="Red margin threshold (%)" name="marginThreshold" value={settings.marginThreshold} step="1" hint="Products below this are flagged red on the dashboard." />
         <Field label="Target margin (%)" name="targetMargin" value={settings.targetMargin} step="1" hint="Used for suggested prices on each product page." />
         <div className="sm:col-span-2 mt-2 border-t border-ink-100 pt-5"><h3 className="font-semibold">Etsy fees</h3><p className="mt-1 text-sm text-ink-500">Leave these unless Etsy changes its pricing or you sell outside the US.</p></div>
