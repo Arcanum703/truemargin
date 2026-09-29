@@ -16,7 +16,7 @@ export function Shell({ children, title, eyebrow = "Profit tracker for Etsy sell
           <div className="flex items-center gap-3 text-xs text-ink-500">
             {!user.subscribed && <Link href="/app/billing" className="rounded-full bg-red-100 px-3 py-1 font-semibold text-red-700">Trial ended</Link>}
             {user.subscribed && user.trialDaysLeft != null && <Link href="/app/billing" className="rounded-full bg-brand-100 px-3 py-1 font-semibold text-brand-700">{user.trialDaysLeft} trial day{user.trialDaysLeft === 1 ? "" : "s"} left</Link>}
-            <Link href="/app/account" className="hidden sm:inline hover:text-brand-700">{user.email}</Link>
+            <Link href="/app/account" className="hover:text-brand-700"><span className="hidden sm:inline">{user.email}</span><span className="sm:hidden">Account</span></Link>
             <form action={logoutAction}><button className="font-semibold text-brand-700 hover:underline">Log out</button></form>
           </div>
         </> : <nav className="flex items-center gap-4 text-sm font-medium text-ink-600"><Link href="/login" className="hover:text-brand-700">Log in</Link><Link href="/signup" className="rounded-full bg-brand-600 px-4 py-2 font-semibold text-white shadow-sm hover:bg-brand-700">Start free trial</Link></nav>}
