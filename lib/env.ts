@@ -13,6 +13,7 @@ const schema = z.object({
   STRIPE_PRICE_ID_YEARLY: z.string().optional(),
   TRIAL_DAYS: z.coerce.number().int().min(0).max(90).default(14),
   DEMO_MODE: z.enum(["0", "1"]).default("0"),
+  CRON_SECRET: z.string().min(16).optional(),
 });
 
 const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";

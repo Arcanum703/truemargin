@@ -51,6 +51,10 @@ export function proxy(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   for (const [key, value] of Object.entries(headers)) response.headers.set(key, value);
   if (pathname.startsWith("/app") || pathname.startsWith("/api")) response.headers.set("Cache-Control", "no-store");
+  const source = request.nextUrl.searchParams.get("ref") ?? request.nextUrl.searchParams.get("utm_source");
+  if (source && !request.cookies.get("tm_ref") && /^[\w.-]{1,40}$/.test(source)) {
+    response.cookies.set("tm_ref", source, { httpOnly: true, sameSite: "lax", secure: request.nextUrl.protocol === "https:", path: "/", maxAge: 30 * 24 * 60 * 60 });
+  }
   return response;
 }
 

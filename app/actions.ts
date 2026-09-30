@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import type { ActionState } from "@/lib/action-state";
@@ -59,8 +60,10 @@ export async function signupAction(_: ActionState, formData: FormData): Promise<
       return { success: "Check your inbox to confirm your email and finish setting up." };
     }
     const passwordHash = await hashPassword(password);
-    const user = await db.user.create({ data: { email, passwordHash, emailVerifiedAt: emailEnabled && env.DEMO_MODE !== "1" ? null : new Date(), memberships: { create: { role: "OWNER", workspace: { create: { name: shopName, trialEndsAt: new Date(Date.now() + env.TRIAL_DAYS * 24 * 60 * 60 * 1000), settings: { create: {} } } } } } }, include: { memberships: true } });
-    await audit("user.signup", { userId: user.id, workspaceId: user.memberships[0]?.workspaceId });
+    const ref = (await cookies()).get("tm_ref")?.value;
+    const signupSource = ref && /^[\w.-]{1,40}$/.test(ref) ? ref : null;
+    const user = await db.user.create({ data: { email, passwordHash, signupSource, emailVerifiedAt: emailEnabled && env.DEMO_MODE !== "1" ? null : new Date(), memberships: { create: { role: "OWNER", workspace: { create: { name: shopName, trialEndsAt: new Date(Date.now() + env.TRIAL_DAYS * 24 * 60 * 60 * 1000), settings: { create: {} } } } } } }, include: { memberships: true } });
+    await audit("user.signup", { userId: user.id, workspaceId: user.memberships[0]?.workspaceId, metadata: { source: signupSource } });
     if (!user.emailVerifiedAt) {
       const token = await issueToken(user.id, "EMAIL_VERIFY", VERIFY_TTL_MS);
       await sendVerificationEmail(email, token);
