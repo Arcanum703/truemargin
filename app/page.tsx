@@ -18,7 +18,7 @@ export default async function LandingPage({ searchParams }: { searchParams: Prom
         <p className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-brand-50">Made for Etsy sellers</p>
         <h1 className="mt-5 text-4xl font-semibold leading-[1.05] tracking-tight sm:text-6xl">Your Etsy sales look great.<br /><span className="text-brand-100">What do you actually keep?</span></h1>
         <p className="mt-6 max-w-xl text-lg text-brand-50/90">Upload the two CSVs Etsy already gives you. TrueMargin subtracts every Etsy fee, shipping, ads, and your own costs — and shows the real profit on each listing in under a minute.</p>
-        <div className="mt-8 flex flex-wrap items-center gap-3"><Link href="/signup" className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-md hover:bg-brand-50">Start {env.TRIAL_DAYS}-day free trial</Link><Link href="/login" className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10">Log in</Link></div>
+        <div className="mt-8 flex flex-wrap items-center gap-3"><Link href="/signup" className="rounded-full bg-white px-6 py-3 text-sm font-semibold text-brand-700 shadow-md hover:bg-brand-50">Start {env.TRIAL_DAYS}-day free trial</Link><Link href="/tools/etsy-fee-calculator" className="rounded-full border border-white/40 px-6 py-3 text-sm font-semibold text-white hover:bg-white/10">Try the free fee calculator</Link></div>
         <p className="mt-4 text-xs text-brand-100">No credit card for the trial · Try it with a demo shop first · Cancel anytime</p>
       </div>
     </section>

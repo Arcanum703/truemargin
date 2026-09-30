@@ -14,12 +14,25 @@ model User {
   emailVerifiedAt    DateTime?
   failedLoginCount   Int        @default(0)
   lockedUntil        DateTime?
+  signupSource       String?
+  marketingOptOut    Boolean    @default(false)
   createdAt          DateTime   @default(now())
   updatedAt          DateTime   @updatedAt
   sessions           Session[]
   tokens             AuthToken[]
   memberships        Membership[]
   auditLogs          AuditLog[]
+  lifecycleEmails    LifecycleEmail[]
+}
+
+model LifecycleEmail {
+  id     String   @id @default(cuid())
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind   String
+  sentAt DateTime @default(now())
+
+  @@unique([userId, kind])
 }
 
 model Session {
