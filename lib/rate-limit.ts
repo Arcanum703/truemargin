@@ -11,6 +11,7 @@ export const RATE_LIMITS = {
   import: { limit: 20, windowSeconds: 60 * 60 },
   mutation: { limit: 240, windowSeconds: 60 * 60 },
   billing: { limit: 10, windowSeconds: 60 * 60 },
+  export: { limit: 60, windowSeconds: 60 * 60 },
   account: { limit: 5, windowSeconds: 60 * 60 },
 } satisfies Record<string, RateLimitRule>;
 
