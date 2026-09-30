@@ -23,7 +23,7 @@ export function Shell({ children, title, eyebrow = "Profit tracker for Etsy sell
       </div>
     </header>
     <main className="mx-auto max-w-7xl px-5 py-8">{title && <div className="mb-7"><p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-700">{user ? "Your Etsy shop" : "TrueMargin"}</p><h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1></div>}{children}</main>
-    <footer className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-5 py-8 text-xs text-ink-500"><span>© {new Date().getFullYear()} TrueMargin · Built for Etsy sellers. Not affiliated with or endorsed by Etsy, Inc.</span><Link href="/tools/etsy-fee-calculator" className="hover:text-brand-700">Etsy fee calculator</Link><Link href="/privacy" className="hover:text-brand-700">Privacy</Link><Link href="/terms" className="hover:text-brand-700">Terms</Link><Link href="/security" className="hover:text-brand-700">Security</Link><a href="mailto:support@truemargin.app" className="hover:text-brand-700">Support</a></footer>
+    <footer className="mx-auto flex max-w-7xl flex-wrap items-center gap-4 px-5 py-8 text-xs text-ink-500"><span>© {new Date().getFullYear()} TrueMargin · Built for Etsy sellers. Not affiliated with or endorsed by Etsy, Inc.</span><Link href="/tools/etsy-fee-calculator" className="hover:text-brand-700">Etsy fee calculator</Link><Link href="/guides" className="hover:text-brand-700">Guides</Link><Link href="/privacy" className="hover:text-brand-700">Privacy</Link><Link href="/terms" className="hover:text-brand-700">Terms</Link><Link href="/security" className="hover:text-brand-700">Security</Link><a href="mailto:support@truemargin.app" className="hover:text-brand-700">Support</a></footer>
   </div>;
 }
 
