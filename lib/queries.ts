@@ -5,6 +5,14 @@ import { productMetrics } from "@/lib/metrics";
 import { isRefundedStatus } from "@/lib/order-status";
 import { requireWorkspace } from "@/lib/auth";
 
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+function parseDay(value: string | undefined, suffix: string) {
+  if (!value || !ISO_DAY.test(value)) return undefined;
+  const date = new Date(`${value}${suffix}`);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
 export async function getDashboard(options: { period?: string; from?: string; to?: string } = {}) {
   const context = await requireWorkspace();
   const { workspace } = context;
@@ -15,8 +23,10 @@ export async function getDashboard(options: { period?: string; from?: string; to
   } else if (options.period === "30") {
     saleDate.gte = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   } else if (options.period === "custom") {
-    if (options.from) saleDate.gte = new Date(`${options.from}T00:00:00.000Z`);
-    if (options.to) saleDate.lte = new Date(`${options.to}T23:59:59.999Z`);
+    const from = parseDay(options.from, "T00:00:00.000Z");
+    const to = parseDay(options.to, "T23:59:59.999Z");
+    if (from) saleDate.gte = from;
+    if (to) saleDate.lte = to;
   }
   const [orders, products] = await Promise.all([
     db.order.findMany({ where: { workspaceId: workspace.id, ...(Object.keys(saleDate).length ? { saleDate } : {}) }, include: { items: true }, orderBy: { saleDate: "desc" } }),
