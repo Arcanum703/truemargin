@@ -1,10 +1,18 @@
 # TrueMargin
 
+**Live: https://truemargin-phi.vercel.app**
+
+- **[Etsy fee calculator](https://truemargin-phi.vercel.app/tools/etsy-fee-calculator)** and the
+  **[seller guides](https://truemargin-phi.vercel.app/guides)** are public, no account needed.
+- For the full workspace, sign up for the free trial and click **Load demo shop** on the import
+  page (or in the onboarding checklist). It loads a sample shop so you can click around without
+  finding an Etsy export first, and you can clear it later from the account page.
+
 TrueMargin turns Etsy Orders and Order Items exports into a small, understandable profit workspace.
 It shows revenue, every marketplace fee, shipping, material cost, labor, and net margin by product.
 Import the CSVs Etsy already provides; no 12-tab spreadsheets.
 Products have editable cost and stock fields, with alerts for missing costs, low margins, and reorder points.
-The demo shop loads 200 realistic orders and 15 products from `public/demo/`.
+The demo shop loads 202 realistic orders across 15 products from `public/demo/`.
 CSV parsing uses PapaParse with case-insensitive header matching and missing-column tolerance.
 If Orders includes Card Processing Fees, TrueMargin uses that actual value; otherwise it computes the fee.
 Offsite ads can be flagged per order or estimated at a settings-level fallback when no rows are flagged.
