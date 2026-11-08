@@ -1,5 +1,7 @@
 # TrueMargin
 
+[![CI](https://github.com/Arcanum703/truemargin/actions/workflows/ci.yml/badge.svg)](https://github.com/Arcanum703/truemargin/actions/workflows/ci.yml)
+
 **Live: https://truemargin-phi.vercel.app**
 
 - **[Etsy fee calculator](https://truemargin-phi.vercel.app/tools/etsy-fee-calculator)** and the
@@ -7,6 +9,8 @@
 - For the full workspace, sign up for the free trial and click **Load demo shop** on the import
   page (or in the onboarding checklist). It loads a sample shop so you can click around without
   finding an Etsy export first, and you can clear it later from the account page.
+
+![The public Etsy fee calculator: a $25 sale broken into listing, transaction, processing and shipping costs](docs/fee-calculator.png)
 
 TrueMargin turns Etsy Orders and Order Items exports into a small, understandable profit workspace.
 It shows revenue, every marketplace fee, shipping, material cost, labor, and net margin by product.
